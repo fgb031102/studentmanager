@@ -1,85 +1,25 @@
 package com.wdd.studentmanager.domain;
 
+import lombok.Data;
+
+import java.util.Date;
+
+@Data
 public class Student {
 	private int id;
-	private String sn;//学号
+	private String studentId;
 	private String username;
-	private String password;
-	private int clazzId;
-	private String sex = "男";
-	private String mobile;
+	private String bindPhone;
+	private String payPhone;
+	private String wx;
 	private String qq;
-	private String photo;//头像
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getSn() {
-		return sn;
-	}
-
-	public void setSn(String sn) {
-		this.sn = sn;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public int getClazzId() {
-		return clazzId;
-	}
-
-	public void setClazzId(int clazzId) {
-		this.clazzId = clazzId;
-	}
-
-	public String getSex() {
-		return sex;
-	}
-
-	public void setSex(String sex) {
-		this.sex = sex;
-	}
-
-	public String getMobile() {
-		return mobile;
-	}
-
-	public void setMobile(String mobile) {
-		this.mobile = mobile;
-	}
-
-	public String getQq() {
-		return qq;
-	}
-
-	public void setQq(String qq) {
-		this.qq = qq;
-	}
-
-	public String getPhoto() {
-		return photo;
-	}
-
-	public void setPhoto(String photo) {
-		this.photo = photo;
-	}
+	private String fromSrc;
+	private String payDate;
+	private String name;
+	private String pay;
+	private String address;
+	private String mark;
+	private String photo;
+	private String teacherId;
+	private String teacherName;
 }

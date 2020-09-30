@@ -21,12 +21,6 @@ import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-/**
- * @Classname SystemController
- * @Description None
- * @Date 2019/6/24 19:25
- * @Created by WDD
- */
 @Controller
 @RequestMapping("/system")
 public class SystemController {
@@ -44,7 +38,7 @@ public class SystemController {
      */
     @GetMapping("/login")
     public String login(){
-        return "/login";
+        return "/system/login";
     }
 
     /**
@@ -97,21 +91,6 @@ public class SystemController {
                 ajaxResult.setSuccess(true);
                 session.setAttribute(Const.ADMIN,ad);
                 session.setAttribute(Const.USERTYPE,"1");
-                break;
-            }
-            case "2":{
-                Student student = new Student();
-                student.setPassword(password);
-                student.setUsername(username);
-                Student st = studentService.findByStudent(student);
-                if(StringUtils.isEmpty(st)){
-                    ajaxResult.setSuccess(false);
-                    ajaxResult.setMessage("用户名或密码错误");
-                    return ajaxResult;
-                }
-                ajaxResult.setSuccess(true);
-                session.setAttribute(Const.STUDENT,st);
-                session.setAttribute(Const.USERTYPE,"2");
                 break;
             }
             case "3":{
@@ -175,7 +154,7 @@ public class SystemController {
     @GetMapping("/logout")
     public String logout(HttpSession session){
         session.invalidate();
-        return "/login";
+        return "/system/login";
     }
 
 
@@ -187,19 +166,19 @@ public class SystemController {
      */
     @RequestMapping("/getPhoto")
     @ResponseBody
-    public AjaxResult getPhoto(@RequestParam(value = "sid",defaultValue = "0") Integer sid,
+    public AjaxResult getPhoto(@RequestParam(value = "sid",defaultValue = "0") String sid,
                                @RequestParam(value = "tid",defaultValue = "0")Integer tid){
         AjaxResult ajaxResult = new AjaxResult();
-        if(sid != 0){
+        if(!sid.equals("0")){
             Student student = studentService.findById(sid);
             ajaxResult.setImgurl(student.getPhoto());
             return ajaxResult;
         }
-        if(tid!=0){
-            Teacher teacher = teacherService.findById(tid);
-            ajaxResult.setImgurl(teacher.getPhoto());
-            return ajaxResult;
-        }
+//        if(tid != 0){
+//            Teacher teacher = teacherService.findById(tid);
+//            ajaxResult.setImgurl(teacher.getPhoto());
+//            return ajaxResult;
+//        }
 
         return ajaxResult;
     }
@@ -247,30 +226,7 @@ public class SystemController {
                 ajaxResult.setMessage("修改失败");
             }
         }
-        if(usertype.equals("2")){
-            //学生
-            Student student = (Student)session.getAttribute(Const.STUDENT);
-            if(!password.equals(student.getPassword())){
-                ajaxResult.setSuccess(false);
-                ajaxResult.setMessage("原密码错误");
-                return ajaxResult;
-            }
-            student.setPassword(newpassword);
-            try{
-                int count = studentService.editPswdByStudent(student);
-                if(count > 0){
-                    ajaxResult.setSuccess(true);
-                    ajaxResult.setMessage("修改成功,请重新登录");
-                }else{
-                    ajaxResult.setSuccess(false);
-                    ajaxResult.setMessage("修改失败");
-                }
-            }catch (Exception e){
-                e.printStackTrace();
-                ajaxResult.setSuccess(false);
-                ajaxResult.setMessage("修改失败");
-            }
-        }
+
         if(usertype.equals("3")){
             //教师
             Teacher teacher = (Teacher) session.getAttribute(Const.TEACHER);
@@ -297,5 +253,4 @@ public class SystemController {
         }
         return ajaxResult;
     }
-
 }

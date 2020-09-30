@@ -12,8 +12,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AdminMapper {
 
+    // 查找管理员
     Admin findByAdmin(Admin admin);
 
-
+    // 修改管理员密码
     int editPswdByAdmin(Admin admin);
 }

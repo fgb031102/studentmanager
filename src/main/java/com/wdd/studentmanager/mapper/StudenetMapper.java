@@ -5,30 +5,28 @@ import com.wdd.studentmanager.domain.Student;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @Classname StudenetMapper
- * @Description None
- * @Date 2019/6/24 20:09
- * @Created by WDD
- */
 public interface StudenetMapper {
+    // 查询所有学员信息
     List<Student> queryList(Map<String, Object> paramMap);
 
+    // 查询学员总数据
     Integer queryCount(Map<String, Object> paramMap);
 
+    // 批量删除学员
     int deleteStudent(List<Integer> ids);
 
+    // 添加学员
     int addStudent(Student student);
 
-    Student findById(Integer sid);
+    // 通过id查找学员
+    Student findById(String sid);
 
+    // 重新编辑学员
     int editStudent(Student student);
 
+    // 查找学生信息
     Student findByStudent(Student student);
 
-    List<Student> isStudentByClazzId(Integer id);
-
-    int editPswdByStudent(Student student);
-
+    // 通过名字查找学员
     int findByName(String name);
 }

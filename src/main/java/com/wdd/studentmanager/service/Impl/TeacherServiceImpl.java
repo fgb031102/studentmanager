@@ -10,12 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @Classname TeacherServiceImpl
- * @Description None
- * @Date 2019/6/28 18:56
- * @Created by WDD
- */
 @Service
 public class TeacherServiceImpl implements TeacherService {
 

@@ -19,14 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * @Classname TeacherController
- * @Description None
- * @Date 2019/6/28 18:49
- * @Created by WDD
- */
 @Controller
-@RequestMapping("/teacher")
+@RequestMapping("/system/teacher")
 public class TeacherController {
 
     @Autowired
@@ -35,7 +29,7 @@ public class TeacherController {
 
     @RequestMapping("/teacher_list")
     public String teacherList(){
-        return "/teacher/teacherList";
+        return "/system/teacher/teacherList";
     }
 
     /**
@@ -43,7 +37,6 @@ public class TeacherController {
      * @param page
      * @param rows
      * @param teacherName
-     * @param clazzid
      * @param from
      * @param session
      * @return
@@ -53,18 +46,17 @@ public class TeacherController {
     public Object getTeacherList(@RequestParam(value = "page", defaultValue = "1")Integer page,
                                  @RequestParam(value = "rows", defaultValue = "100")Integer rows,
                                  String teacherName,
-                                 @RequestParam(value = "clazzid", defaultValue = "0")String clazzid, String from, HttpSession session){
+                                 String from, HttpSession session){
         Map<String,Object> paramMap = new HashMap();
         paramMap.put("pageno",page);
         paramMap.put("pagesize",rows);
         if(!StringUtils.isEmpty(teacherName))  paramMap.put("username",teacherName);
-        if(!clazzid.equals("0"))  paramMap.put("clazzid",clazzid);
 
         //判断是老师还是学生权限
         Teacher teacher = (Teacher) session.getAttribute(Const.TEACHER);
         if(!StringUtils.isEmpty(teacher)){
             //是老师权限，只能查询自己的信息
-            paramMap.put("teacherid",teacher.getId());
+            paramMap.put("teacherid", teacher.getId());
         }
 
         PageBean<Teacher> pageBean = teacherService.queryPage(paramMap);
@@ -88,16 +80,16 @@ public class TeacherController {
     public AjaxResult deleteTeacher(Data data){
         AjaxResult ajaxResult = new AjaxResult();
         try {
-            File fileDir = UploadUtil.getImgDirFile();
-            for(Integer id : data.getIds()){
-                Teacher byId = teacherService.findById(id);
-                if(!byId.getPhoto().isEmpty()){
-                    File file = new File(fileDir.getAbsolutePath() + File.separator + byId.getPhoto());
-                    if(file != null){
-                        file.delete();
-                    }
-                }
-            }
+//            File fileDir = UploadUtil.getImgDirFile();
+//            for(Integer id : data.getIds()){
+//                Teacher byId = teacherService.findById(id);
+//                if(!byId.getPhoto().isEmpty()){
+//                    File file = new File(fileDir.getAbsolutePath() + File.separator + byId.getPhoto());
+//                    if(file != null){
+//                        file.delete();
+//                    }
+//                }
+//            }
             int count = teacherService.deleteTeacher(data.getIds());
             if(count > 0){
                 ajaxResult.setSuccess(true);
@@ -126,8 +118,7 @@ public class TeacherController {
     public AjaxResult addTeacher(@RequestParam("file") MultipartFile[] files, Teacher teacher) throws IOException {
 
         AjaxResult ajaxResult = new AjaxResult();
-        teacher.setSn(SnGenerateUtil.generateTeacherSn(teacher.getClazzId()));
-
+/*
         // 存放上传图片的文件夹
         File fileDir = UploadUtil.getImgDirFile();
         for(MultipartFile fileImg : files){
@@ -148,6 +139,7 @@ public class TeacherController {
             }
             teacher.setPhoto(uuidName+extName);
         }
+ */
         //保存学生信息到数据库
         try{
             int count = teacherService.addTeacher(teacher);
@@ -172,7 +164,7 @@ public class TeacherController {
     @ResponseBody
     public AjaxResult editTeacher(@RequestParam("file") MultipartFile[] files,Teacher teacher){
         AjaxResult ajaxResult = new AjaxResult();
-
+/*
         // 存放上传图片的文件夹
         File fileDir = UploadUtil.getImgDirFile();
         for(MultipartFile fileImg : files){
@@ -203,7 +195,7 @@ public class TeacherController {
             }
             teacher.setPhoto(uuidName+extName);
         }
-
+*/
         try{
             int count = teacherService.editTeacher(teacher);
             if(count > 0){

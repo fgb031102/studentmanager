@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @Created by WDD
  */
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/system/admin")
 public class AdminController {
     @GetMapping("/list")
     public String list(){
-        return "/admin/admin_list";
+        return "/system/admin/admin_list";
     }
 }

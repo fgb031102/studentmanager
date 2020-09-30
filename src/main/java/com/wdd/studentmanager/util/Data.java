@@ -2,14 +2,8 @@ package com.wdd.studentmanager.util;
 
 import java.util.List;
 
+@lombok.Data
 public class Data {
-    private List<Integer> ids ;
-
-    public List<Integer> getIds() {
-        return ids;
-    }
-
-    public void setIds(List<Integer> ids) {
-        this.ids = ids;
-    }
+    private List<Integer> ids;
+//    private List<Integer> sids;
 }

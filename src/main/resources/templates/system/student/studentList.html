@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+	<meta charset="UTF-8">
+	<title>学生列表</title>
+	<link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/default/easyui.css}">
+	<link rel="stylesheet" type="text/css" th:href="@{/easyui/themes/icon.css}">
+	<link rel="stylesheet" type="text/css" th:href="@{/easyui/css/demo.css}">
+	<script type="text/javascript" th:src="@{/easyui/jquery.min.js}"></script>
+	<script type="text/javascript" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+	<script type="text/javascript" th:src="@{/easyui/js/validateExtends.js}"></script>
+	<script type="text/javascript" th:inline="javascript">
+
+		function uploadidalogonline() {
+            $('#uploadonlineinfo').window('open').dialog('setTitle','文件上传');
+        }
+        function uploadonline() {
+            var add="/system/student/onlineupload";
+            $('#fam').form('submit',{
+                url: add,
+                onSubmit: function(){
+
+                },
+                success: function(result){
+                    var result = eval('('+result+')');
+
+                    if (result.success){
+                        $('#uploadonlineinfo').window('close');
+                        $('#dg2').datagrid('reload');
+                        //刷新表格
+						$("#dataList").datagrid("reload");
+						$("#dataList").datagrid("uncheckAll");
+                        $.messager.show({
+                            title: 'Success',
+                            msg: '上传成功'
+                        });
+                    } else {
+                        $.messager.show({
+                            title: 'Error',
+                            msg: '数据文件错误或上传数据ID有重复，上传失败！'
+                        });
+                    }
+                }
+            });
+        }
+
+		/*<![CDATA[*/
+		$(function() {
+			//datagrid初始化
+			$('#dataList').datagrid({
+				title:'学生列表',
+				iconCls:'icon-more',//图标
+				border: true,
+				collapsible:false,//是否可折叠的
+				fit: true,//自动大小
+				method: "post",
+				url:[[@{/system/student/getStudentList}]],
+				idField:'id',
+				singleSelect:false,//是否单选
+				pagination:true,//分页控件
+				sortName:'id',
+				sortOrder:'DESC',
+				remoteSort: false,
+				columns: [
+						[
+					{field:'chk',checkbox: true,width:50},
+					{field:'id',title:'学员序号',width:80, sortable: true},
+					{field:'studentId',title:'学员ID',width:150},
+					{field:'username',title:'学员昵称',width:120},
+					{field:'bindPhone',title:'绑定手机',width:120},
+					{field:'fromSrc',title:'来源渠道',width:120},
+					{field:'teacherName',title:'公开课讲师',width:120},
+					{field:'pay',title:'支付金额',width:80},
+					{field:'payDate',title:'支付时间',width:180},
+					{field:'name',title:'收件人姓名',width:120},
+					{field:'payPhone',title:'收件人电话',width:120},
+					{field:'address',title:'收件人地址',width:300},
+					{field:'mark',title:'备注信息',width:300},
+					{field:'photo',title:'信息截图',width:300},
+					{field:'teacherId',title:'所属ID',width:300},
+					]
+				],
+				toolbar: "#toolbar",
+			});
+			//设置分页控件
+			var p = $('#dataList').datagrid('getPager');
+			$(p).pagination({
+				pageSize: 10,//每页显示的记录条数，默认为10
+				pageList: [10,20,30,50,100],//可以设置每页记录条数的列表
+				beforePageText: '第',//页数文本框前显示的汉字
+				afterPageText: '页    共 {pages} 页',
+				displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+			});
+			//设置工具类按钮
+			$("#add").click(function(){
+				$("#addDialog").dialog("open");
+			});
+			//修改
+			$("#edit").click(function(){
+				var selectRows = $("#dataList").datagrid("getSelections");
+				if(selectRows.length != 1){
+					$.messager.alert("消息提醒", "请选择一条数据进行操作!", "warning");
+				} else{
+					$("#editDialog").dialog("open");
+				}
+			});
+			//删除
+			$("#delete").click(function(){
+				var selectRows = $("#dataList").datagrid("getSelections");
+				var selectLength = selectRows.length;
+				if(selectLength == 0){
+					$.messager.alert("消息提醒", "请选择数据进行删除!", "warning");
+				} else{
+					var jsonObj = {};
+					$.each(selectRows,function(i,n){
+						jsonObj["ids["+i+"]"] = n.id;
+					});
+					$.messager.confirm("消息提醒", "将删除与学生相关的所有数据，确认继续？", function(r){
+						if(r){
+							$.ajax({
+								type: "post",
+								url: [[@{/system/student/deleteStudent}]],
+								data:jsonObj,
+								success: function(data){
+									if(data.success){
+										$.messager.alert("消息提醒",data.message,"info");
+										//刷新表格
+										$("#dataList").datagrid("reload");
+										$("#dataList").datagrid("uncheckAll");
+									} else{
+										$.messager.alert("消息提醒",data.message,"warning");
+										return;
+									}
+								}
+							});
+						}
+					});
+				}
+			});
+
+			//设置添加学生窗口
+			$("#addDialog").dialog({
+				title: "添加学生",
+				width: 500,
+				height: 610,
+				iconCls: "icon-add",
+				modal: true,
+				collapsible: false,
+				minimizable: false,
+				maximizable: false,
+				draggable: true,
+				closed: true,
+				buttons: [
+					{
+						text:'添加',
+						plain: true,
+						iconCls:'icon-user_add',
+						handler:function(){
+							var validate = $("#addForm").form("validate");
+							if(!validate){
+								$.messager.alert("消息提醒","请检查你输入的数据!","warning");
+								return;
+							} else{
+								var formData = new FormData($( "#addForm" )[0]);
+								$.ajax({
+									type: "post",
+									url: [[@{/system/student/addStudent}]],
+									data: formData,
+									async: false,
+									cache: false,
+									contentType: false,
+									processData: false,
+									success: function(data){
+										if(data.success){
+											$.messager.alert("消息提醒",data.message,"info");
+											//关闭窗口
+											$("#addDialog").dialog("close");
+											//清空原表格数据
+											$("#add_studentId").textbox('setValue', "");
+											$("#add_username").textbox('setValue', "");
+											$("#add_bindPhone").textbox('setValue', "");
+											$("#add_pay").textbox('setValue', "");
+											$("#add_fromSrc").textbox('setValue', "");
+											$("#add_payDate").textbox('setValue', "");
+											$("#add_name").textbox('setValue', "");
+											$("#add_payPhone").textbox('setValue', "");
+											$("#add_address").textbox('setValue', "");
+											$("#add_mark").textbox('setValue', "");
+											$("#add_teacherId").textbox('setValue', "");
+											$("#add_teacherName").textbox('setValue', "");
+
+
+											//重新刷新页面数据
+											$('#dataList').datagrid("reload");
+
+										} else{
+											$.messager.alert("消息提醒",data.message,"warning");
+											return;
+										}
+									}
+								});
+							}
+						}
+					},
+					{
+						text:'重置',
+						plain: true,
+						iconCls:'icon-reload',
+						handler:function(){
+							$("#add_studentId").textbox('setValue', "");
+							$("#add_username").textbox('setValue', "");
+							$("#add_bindPhone").textbox('setValue', "");
+							$("#add_pay").textbox('setValue', "");
+							$("#add_payDate").textbox('setValue', "");
+							$("#add_fromSrc").textbox('setValue', "");
+							$("#add_name").textbox('setValue', "");
+							$("#add_payPhone").textbox('setValue', "");
+							$("#add_address").textbox('setValue', "");
+							$("#add_mark").textbox('setValue', "");
+							$("#add_teacherId").textbox('setValue', "");
+							$("#add_teacherName").textbox('setValue', "");
+
+						}
+					},
+				]
+			});
+
+			//设置编辑学生窗口
+			$("#editDialog").dialog({
+				title: "修改学生信息",
+				width: 500,
+				height: 610,
+				iconCls: "icon-edit",
+				modal: true,
+				collapsible: false,
+				minimizable: false,
+				maximizable: false,
+				draggable: true,
+				closed: true,
+				buttons: [
+					{
+						text:'提交',
+						plain: true,
+						iconCls:'icon-user_add',
+						handler:function(){
+							var validate = $("#editForm").form("validate");
+							if(!validate){
+								$.messager.alert("消息提醒","请检查你输入的数据!","warning");
+								return;
+							} else{
+								var formData = new FormData($( "#editForm" )[0]);
+								$.ajax({
+									type: "post",
+									url: [[@{/system/student/editStudent}]],
+									data: formData,
+									async: false,
+									cache: false,
+									contentType: false,
+									processData: false,
+									success: function(data){
+										if(data.success){
+											$.messager.alert("消息提醒",data.message,"info");
+											//关闭窗口
+											$("#editDialog").dialog("close");
+											//刷新表格
+											$("#dataList").datagrid("reload");
+											$("#dataList").datagrid("uncheckAll");
+
+										} else{
+											$.messager.alert("消息提醒",data.message,"warning");
+											return;
+										}
+									}
+								});
+							}
+						}
+					},
+					{
+						text:'重置',
+						plain: true,
+						iconCls:'icon-reload',
+						handler:function(){
+							//清空表单
+							$("#edit_username").textbox('setValue', "");
+							$("#edit_bindPhone").textbox('setValue', "");
+							$("#edit_pay").textbox('setValue', "");
+							$("#edit_payDate").textbox('setValue', "");
+							$("#edit_fromSrc").textbox('setValue', "");
+							$("#edit_name").textbox('setValue', "");
+							$("#edit_payPhone").textbox('setValue', "");
+							$("#edit_address").textbox('setValue', "");
+							$("#edit_mark").textbox('setValue', "");
+							$("#edit_teacherId").textbox('setValue', "");
+
+
+							$("#edit_gradeList").combobox("clear");
+							$("#edit_gradeList").combobox("reload");
+						}
+					}
+				],
+
+				onBeforeOpen: function(){
+					var selectRow = $("#dataList").datagrid("getSelected");
+					$("#imgd div").remove();
+										$.ajax({
+						type: "post",
+						url: [[@{/system/getPhoto}]]+"?sid="+selectRow.id,
+						success: function(data){
+							var i = [[@{/upload/imgs/}]];
+							var imgUrl = data.imgurl;
+							var img = i + imgUrl;
+							//设置值
+							$("#edit_studentId").textbox('setValue', selectRow.studentId);
+							$("#edit_username").textbox('setValue', selectRow.username);
+							$("#edit_bindPhone").textbox('setValue', selectRow.bindPhone);
+							$("#edit_pay").textbox('setValue', selectRow.pay);
+							$("#edit_payDate").textbox('setValue', selectRow.payDate);
+							$("#edit_fromSrc").textbox('setValue', selectRow.fromSrc);
+							$("#edit_name").textbox('setValue', selectRow.name);
+							$("#edit_payPhone").textbox('setValue', selectRow.payPhone);
+							$("#edit_address").textbox('setValue', selectRow.address);
+							$("#edit_mark").textbox('setValue', selectRow.mark);
+							$("#edit_teacherId").textbox('setValue', selectRow.teacherId);
+							$("#edit_teacherName").textbox('setValue', selectRow.teacherName);
+
+							var div = document.createElement("div"),
+							img1 = document.createElement("img");
+							img1.src=img;
+							$(img1).css("width","300px");
+							$(img1).css("hight","300px");
+							div.appendChild(img1);
+							$("#imgd").append(div);
+						}
+					});
+
+					//设置值
+					// $("#edit_studentId").textbox('setValue', selectRow.studentId);
+					// $("#edit_username").textbox('setValue', selectRow.username);
+					// $("#edit_bindPhone").textbox('setValue', selectRow.bindPhone);
+					// $("#edit_pay").textbox('setValue', selectRow.pay);
+					// $("#edit_payDate").textbox('setValue', selectRow.payDate);
+					// $("#edit_fromSrc").textbox('setValue', selectRow.fromSrc);
+					// $("#edit_name").textbox('setValue', selectRow.name);
+					// $("#edit_payPhone").textbox('setValue', selectRow.payPhone);
+					// $("#edit_address").textbox('setValue', selectRow.address);
+					// $("#edit_mark").textbox('setValue', selectRow.mark);
+					// $("#edit_teacherId").textbox('setValue', selectRow.teacherId);
+					// $("#edit_teacherName").textbox('setValue', selectRow.teacherName);
+				}
+			});
+
+			//搜索按钮监听事件
+			$("#search-btn").click(function(){
+				$('#dataList').datagrid('load',{
+					studentId: $('#search_student_id').val()
+				});
+			});
+		});
+
+		/*图片预览*/
+		var filechange=function(event){
+			$("#imgDiv div").remove();
+			var inp = event.path[0];
+			var files = event.target.files;
+			$.each(files,function(key,value){
+				//每次都只会遍历一个图片数据
+				var div = document.createElement("div"),
+				img = document.createElement("img");
+				div.className = "pic";
+
+				var fr = new FileReader();
+				fr.onload = function(){
+					img.src=this.result;
+					$(img).css("width","300px");
+					$(img).css("hight","300px");
+					div.appendChild(img);
+					$("#imgDiv").append(div);
+				};
+				fr.readAsDataURL(value);
+			})
+		};
+
+		var filechange1=function(event){
+			$("#imgd div").remove();
+
+			var inp = event.path[0];
+			var files = event.target.files;
+			$.each(files,function(key,value){
+				//每次都只会遍历一个图片数据
+				var div = document.createElement("div"),
+				img = document.createElement("img");
+				div.className = "pic";
+
+				var fr = new FileReader();
+				fr.onload = function(){
+					img.src=this.result;
+					$(img).css("width","300px");
+					$(img).css("hight","300px");
+					div.appendChild(img);
+					$("#imgd").append(div);
+				};
+				console.log(img)
+				fr.readAsDataURL(value);
+			})
+		};
+
+		/*]]>*/
+	</script>
+</head>
+<body>
+<!-- 学生列表 -->
+<table id="dataList" cellspacing="0" cellpadding="0">
+
+</table>
+<!-- 工具栏 -->
+<div id="toolbar">
+	<div th:if="${session.usertype == '1' || session.usertype == '3'}" style="float: left;"><a id="add" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true">添加</a></div>
+	<div th:if="${session.usertype == '1' || session.usertype == '3'}" style="float: left;" class="datagrid-btn-separator"></div>
+	<div style="float: left;"><a id="edit" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true">修改</a></div>
+	<div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+	<div th:if="${session.usertype == '1'}" style="float: left;"><a id="delete" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-some-delete',plain:true">删除</a></div>
+
+	<div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+	<div th:if="${session.usertype == '1'}" style="float: left;">
+		<a href="#button" class="easyui-linkbutton" data-options="iconCls:'icon-remove'" onclick="uploadidalogonline();">批量上传</a>
+	</div>
+	<div th:if="${session.usertype == '1'}" style="float: left;" class="datagrid-btn-separator"></div>
+	<div style="margin-left: 10px;margin-top:4px;" >&nbsp;学员ID：<input id="search_student_id" class="easyui-textbox" name="student_id" />
+		<a id="search-btn" href="javascript:;" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true">搜索</a>
+	</div>
+
+</div>
+
+<!-- 上传文件窗口 -->
+<div id="uploadonlineinfo" class="easyui-window" style="width:350px;padding:10px 40px" closed="true">
+	<form id="fam" method="post" enctype="multipart/form-data">
+		<table border="0" style="margin-top:4px;" width="100%" align="center">
+			<tr>
+				<td>
+					<input class="easyui-filebox" name="onlinefilename" data-options="prompt:'文件上传'" style="width:90%"></input>
+				</td>
+			</tr>
+		</table>
+	</form>
+
+	<div data-options="region:'south',border:false" style="text-align:center;padding:5px 0 0;">
+		<a class="easyui-linkbutton" data-options="iconCls:'icon-ok'" href="javascript:void(0)" onclick="uploadonline();" style="width:80px">上传</a>
+	</div>
+</div>
+
+<!-- 添加学生窗口 -->
+<div id="addDialog" style="padding: 10px">
+
+	<form id="addForm" method="post" enctype="multipart/form-data">
+		<table cellpadding="8" >
+			<tr>
+				<td>学员ID:</td>
+				<td><input id="add_studentId" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" validType="number" name="studentId" data-options="required:true, missingMessage:'请填写学员ID'" /></td>
+			</tr>
+
+			<tr>
+				<td>学员昵称:</td>
+				<td><input id="add_username" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="username" /></td>
+			</tr>
+			<tr>
+				<td>绑定手机:</td>
+				<td><input id="add_bindPhone" style="width: 200px; height: 30px;" class="easyui-textbox" name="bindPhone" validType="number" /></td>
+			</tr>
+			<tr>
+				<td>信息来源:</td>
+				<td><input id="add_fromSrc" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="fromSrc" /></td>
+			</tr>
+			<tr>
+				<td>公开课讲师:</td>
+				<td><input id="add_teacherName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="teacherName" /></td>
+			</tr>
+			<tr>
+				<td>交易金额:</td>
+				<td><input id="add_pay" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="pay" /></td>
+			</tr>
+			<tr>
+				<td>支付时间:</td>
+				<td><input id="add_payDate" style="width: 200px; height: 30px;" class="easyui-datetimebox" type="text" name="payDate" /></td>
+			</tr>
+			<tr>
+				<td>收件人姓名:</td>
+				<td><input id="add_name" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="name" /></td>
+			</tr>
+			<tr>
+				<td>收件人电话:</td>
+				<td><input id="add_payPhone" style="width: 200px; height: 30px;" class="easyui-textbox" name="payPhone" validType="number" /></td>
+			</tr>
+			<tr>
+				<td>收件人地址:</td>
+				<td><input id="add_address" style="width: 200px; height: 30px;" class="easyui-textbox" name="address" /></td>
+			</tr>
+			<tr>
+				<td>备注信息:</td>
+				<td><input id="add_mark" style="width: 200px; height: 50px;" class="easyui-textbox" name="mark" data-options="multiline:true" labelPosition="top" /></td>
+			</tr>
+			<tr th:if="${session.usertype == '1'}">
+				<td>所属ID:</td>
+				<td><input id="add_teacherId" style="width: 200px; height: 30px;" class="easyui-textbox" name="teacherId" data-options="required:true, missingMessage:'请填写学员信息所属教师ID'"/></td>
+			</tr>
+			<tr>
+				<td>信息截图:</td>
+				<td><input id="add_photo" onchange="filechange(event)" type="file" name="file" multiple></td>
+			</tr>
+			<tr>
+				<td colspan="2"><div id="imgDiv"></div></td>
+			</tr>
+		</table>
+	</form>
+</div>
+
+<!-- 修改学生窗口 -->
+<div id="editDialog" style="padding: 10px">
+	<form id="editForm" method="post" enctype="multipart/form-data">
+		<!--		<input type="hidden" name="id" id="edit-id">-->
+		<table cellpadding="8" >
+			<tr>
+				<td>学员ID:</td>
+				<td><input id="edit_studentId" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" nvalidType="number" name="studentId" readonly="true" /></td>
+			</tr>
+
+			<tr>
+				<td>学员昵称:</td>
+				<td><input id="edit_username" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="username" /></td>
+			</tr>
+			<tr>
+				<td>绑定手机:</td>
+				<td><input id="edit_bindPhone" style="width: 200px; height: 30px;" class="easyui-textbox" name="bindPhone" validType="number" /></td>
+			</tr>
+			<tr>
+				<td>信息来源:</td>
+				<td><input id="edit_fromSrc" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="fromSrc" /></td>
+			</tr>
+			<tr>
+				<td>公开课讲师:</td>
+				<td><input id="edit_teacherName" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="teacherName" /></td>
+			</tr>
+			<tr>
+				<td>交易金额:</td>
+				<td><input id="edit_pay" style="width: 200px; height: 30px;" class="easyui-textbox" type="text" name="pay" /></td>
+			</tr>
+			<tr>
+				<td>支付时间:</td>
+				<td><input id="edit_payDate" style="width: 200px; height: 30px;" class="easyui-datetimebox" type="text" name="payDate" /></td>
+			</tr>
+			<tr>
+				<td>收件人姓名:</td>
+				<td><input id="edit_name" style="width: 200px; height: 30px;" class="easyui-textbox" name="name" type="text"/></td>
+			</tr>
+			<tr>
+				<td>收件人电话:</td>
+				<td><input id="edit_payPhone" style="width: 200px; height: 30px;" class="easyui-textbox" name="payPhone" validType="number" /></td>
+			</tr>
+			<tr>
+				<td>收件人地址:</td>
+				<td><input id="edit_address" style="width: 200px; height: 30px;" class="easyui-textbox" name="address" type="text" /></td>
+			</tr>
+			<tr>
+				<td>备注信息:</td>
+				<td><input id="edit_mark" style="width: 200px; height: 50px;" class="easyui-textbox" name="mark" data-options="multiline:true" labelPosition="top" /></td>
+			</tr>
+			<tr th:if="${session.usertype == '1'}">
+				<td>所属ID:</td>
+				<td><input id="edit_teacherId" style="width: 200px; height: 30px;" class="easyui-textbox" name="teacherId" data-options="required:true, missingMessage:'请填写学员信息所属教师ID'" /></td>
+			</tr>
+			<tr>
+				<td>信息截图:</td>
+				<td><input id="edit_photo" style="width: 200px; height: 30px;" class="easyui-textbox" onchange="filechange1(event)" type="file" name="photo" multiple data-options="required:true, missingMessage:'请上传信息截图'"></td>
+				<td><div id="imgd"></div></td>
+			</tr>
+		</table>
+	</form>
+</div>
+</body>
+</html>

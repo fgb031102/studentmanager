@@ -29,5 +29,4 @@ public class LoginInterceptor implements HandlerInterceptor {
         response.sendRedirect(request.getContextPath() + "/system/login");
         return false;
     }
-
 }

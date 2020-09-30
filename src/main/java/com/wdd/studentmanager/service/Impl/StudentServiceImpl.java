@@ -10,12 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @Classname StudentServiceImpl
- * @Description None
- * @Date 2019/6/27 14:12
- * @Created by WDD
- */
 @Service
 public class StudentServiceImpl implements StudentService {
 
@@ -24,6 +18,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public PageBean<Student> queryPage(Map<String, Object> paramMap) {
+
         PageBean<Student> pageBean = new PageBean<>((Integer) paramMap.get("pageno"),(Integer) paramMap.get("pagesize"));
 
         Integer startIndex = pageBean.getStartIndex();
@@ -47,7 +42,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student findById(Integer sid) {
+    public Student findById(String sid) {
         return studenetMapper.findById(sid);
     }
 
@@ -59,21 +54,6 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public Student findByStudent(Student student) {
         return studenetMapper.findByStudent(student);
-    }
-
-    @Override
-    public boolean isStudentByClazzId(Integer id) {
-        List<Student> studentList = studenetMapper.isStudentByClazzId(id);
-        if (studentList.isEmpty()){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    @Override
-    public int editPswdByStudent(Student student) {
-        return studenetMapper.editPswdByStudent(student);
     }
 
     @Override
