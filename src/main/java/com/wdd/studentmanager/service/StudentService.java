@@ -19,7 +19,7 @@ public interface StudentService {
 
     int editStudent(Student student);
 
-    Student findByStudent(Student student);
+    Student findByStudentNo(Integer no);
 
     int findByName(String username);
 }

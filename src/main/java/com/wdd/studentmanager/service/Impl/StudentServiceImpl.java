@@ -52,8 +52,8 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
-    public Student findByStudent(Student student) {
-        return studenetMapper.findByStudent(student);
+    public Student findByStudentNo(Integer no) {
+        return studenetMapper.findByStudentNo(no);
     }
 
     @Override

@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/studentmanager?setUnicode=true&characterEncoding=utf8&useAffectedRows=true&useSSL=false
     username: root
-    password: fgb031102 #Mxredu@2020
+    password: Mxredu@2020
 
   servlet:
     multipart:

@@ -18,14 +18,14 @@ public interface StudenetMapper {
     // 添加学员
     int addStudent(Student student);
 
-    // 通过id查找学员
+    // 通过学员id查找学员
     Student findById(String sid);
 
     // 重新编辑学员
     int editStudent(Student student);
 
     // 查找学生信息
-    Student findByStudent(Student student);
+    Student findByStudentNo(Integer no);
 
     // 通过名字查找学员
     int findByName(String name);

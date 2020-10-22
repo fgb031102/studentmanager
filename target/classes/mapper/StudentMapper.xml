@@ -99,13 +99,12 @@
         where studentId = #{studentId}
     </update>
 
-
     <select id="findById" parameterType="String" resultType="Student">
         select * from s_student where studentId = #{studentId}
     </select>
 
-    <select id="findByStudent" parameterType="Student" resultType="Student">
-        select * from s_student where name = #{name}
+    <select id="findByStudentNo" parameterType="java.lang.Integer" resultType="Student">
+        select * from s_student where id = #{id}
     </select>
 
 <!--    <select id="findByName" parameterType="java.lang.String" resultType="int">-->

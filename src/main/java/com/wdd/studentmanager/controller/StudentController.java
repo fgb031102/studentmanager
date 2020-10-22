@@ -83,18 +83,16 @@ public class StudentController {
         AjaxResult ajaxResult = new AjaxResult();
         try {
             List<Integer> ids = data.getIds();
-//            Iterator<String> iterator = ids.iterator();
-//
-//            File fileDir = UploadUtil.getImgDirFile();
-//            for(String id : ids){
-//                Student byId = studentService.findById(id);
-//                if(!byId.getPhoto().isEmpty()){
-//                    File file = new File(fileDir.getAbsolutePath() + File.separator + byId.getPhoto());
-//                    if(file != null){
-//                        file.delete();
-//                    }
-//                }
-//            }
+            File fileDir = UploadUtil.getImgDirFile();
+            for(Integer id : ids){
+                Student byId = studentService.findByStudentNo(id);
+                if(!byId.getPhoto().isEmpty()){
+                    File file = new File("./upload/images/" + byId.getPhoto());
+                    if(file != null){
+                        file.delete();
+                    }
+                }
+            }
             int count = studentService.deleteStudent(ids);
             if(count > 0){
                 ajaxResult.setSuccess(true);
@@ -125,44 +123,20 @@ public class StudentController {
     @ResponseBody
     public AjaxResult addStudent(@RequestParam("file") MultipartFile[] files, Student student, HttpSession session) throws IOException {
         AjaxResult ajaxResult = new AjaxResult();
-
-        // 因为图片是必填项目，所以判断是否为空
-        String fileName = files[0].getOriginalFilename();
-        assert fileName != null;
-        if (fileName.equals("")) {
-            ajaxResult.setSuccess(false);
-            ajaxResult.setMessage("信息截图不能为空！");
-            return ajaxResult;
-        }
-
-        // 只支持PNG&JPG
-        String exName = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
-        if (!(exName.equals(".jpg")|| exName.equals("jpeg") || exName.equals(".png"))) {
-            ajaxResult.setSuccess(false);
-            ajaxResult.setMessage("信息截图格式只支持PNG或者JPG");
-            return ajaxResult;
-        }
-
-        // 截图文件大小只支行1M
-
         // 存放上传图片的文件夹
         File fileDir = UploadUtil.getImgDirFile();
         for(MultipartFile fileImg : files){
-
             // 拿到文件名
             String extName = fileImg.getOriginalFilename().substring(fileImg.getOriginalFilename().lastIndexOf("."));
             String uuidName = UUID.randomUUID().toString();
-
             try {
                 // 构建真实的文件路径
                 File newFile = new File(fileDir.getAbsolutePath() + File.separator +uuidName+ extName);
                 // 上传图片到 -》 “绝对路径”
                 fileImg.transferTo(newFile);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String host = "";
             student.setPhoto(uuidName+extName);
         }
         //保存学生信息到数据库
@@ -178,7 +152,6 @@ public class StudentController {
             }else if (student.getPayDate().equals("")){
                 student.setPayDate(null);
             }
-
             // 如果是教师添加学员的话，设置的teachId为当前登录账号的teacherId
             Teacher teacher = (Teacher) session.getAttribute(Const.TEACHER);
             if(!StringUtils.isEmpty(teacher)){
@@ -204,7 +177,6 @@ public class StudentController {
             ajaxResult.setSuccess(false);
             ajaxResult.setMessage("保存失败");
         }
-
         ajaxResult.setSuccess(true);
         return ajaxResult;
     }
@@ -216,7 +188,33 @@ public class StudentController {
      */
     @PostMapping("/editStudent")
     @ResponseBody
-    public AjaxResult editStudent(Student student){
+    public AjaxResult editStudent(@RequestParam("file") MultipartFile[] files, Student student){
+        AjaxResult ajaxResult = new AjaxResult();
+        // 是否重新上传了图片文件
+        if (!files[0].isEmpty()) {
+            File fileDir = UploadUtil.getImgDirFile();
+            for(MultipartFile fileImg : files){
+                // 拿到文件名
+                String extName = fileImg.getOriginalFilename().substring(fileImg.getOriginalFilename().lastIndexOf("."));
+                String uuidName = UUID.randomUUID().toString();
+                try {
+                    // 构建真实的文件路径
+                    File newFile = new File(fileDir.getAbsolutePath() + File.separator +uuidName+ extName);
+                    // 上传图片到 -》 “绝对路径”
+                    fileImg.transferTo(newFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                // 已经重新上传了图片，需要删除之前的图片
+                Student byId = studentService.findById(student.getStudentId());
+                File file = new File("./upload/images/" + byId.getPhoto());
+                if(file != null){
+                    file.delete();
+                }
+                student.setPhoto(uuidName+extName);
+            }
+        }
+
         // 在有支付日期的情况下&&日期格式不符合要求时进行转换。
         if (student.getPayDate().contains("/")) {
             String dateStr = student.getPayDate().split(" ")[0];
@@ -230,7 +228,6 @@ public class StudentController {
             student.setPayDate(null);
         }
 
-        AjaxResult ajaxResult = new AjaxResult();
         try{
             int count = studentService.editStudent(student);
             if(count > 0){

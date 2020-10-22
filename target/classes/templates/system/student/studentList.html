@@ -76,7 +76,10 @@
 					{field:'payPhone',title:'收件人电话',width:120},
 					{field:'address',title:'收件人地址',width:300},
 					{field:'mark',title:'备注信息',width:300},
-					{field:'photo',title:'信息截图',width:300},
+					{field:'photo',title:'信息截图',width:300, formatter: function (value,row,index){
+							var filename = value == null ? "" : value;
+							return  '<a style="color:blue" href="/upload/' +filename+ '">' + filename + '</a>' ;
+						}},
 					{field:'teacherId',title:'所属ID',width:300},
 					]
 				],
@@ -188,7 +191,7 @@
 											$("#add_mark").textbox('setValue', "");
 											$("#add_teacherId").textbox('setValue', "");
 											$("#add_teacherName").textbox('setValue', "");
-
+											$("#add_photo").filebox('setValue', "");
 
 											//重新刷新页面数据
 											$('#dataList').datagrid("reload");
@@ -219,10 +222,13 @@
 							$("#add_mark").textbox('setValue', "");
 							$("#add_teacherId").textbox('setValue', "");
 							$("#add_teacherName").textbox('setValue', "");
-
+							$("#add_photo").filebox('setValue', "");
 						}
-					},
-				]
+					}
+				],
+				onBeforeOpen: function() {
+					$("#imgDiv div").remove();
+				}
 			});
 
 			//设置编辑学生窗口
@@ -265,7 +271,6 @@
 											//刷新表格
 											$("#dataList").datagrid("reload");
 											$("#dataList").datagrid("uncheckAll");
-
 										} else{
 											$.messager.alert("消息提醒",data.message,"warning");
 											return;
@@ -291,7 +296,7 @@
 							$("#edit_address").textbox('setValue', "");
 							$("#edit_mark").textbox('setValue', "");
 							$("#edit_teacherId").textbox('setValue', "");
-
+							$("#edit_photo").filebox('setValue', "");
 
 							$("#edit_gradeList").combobox("clear");
 							$("#edit_gradeList").combobox("reload");
@@ -302,11 +307,11 @@
 				onBeforeOpen: function(){
 					var selectRow = $("#dataList").datagrid("getSelected");
 					$("#imgd div").remove();
-										$.ajax({
+						$.ajax({
 						type: "post",
-						url: [[@{/system/getPhoto}]]+"?sid="+selectRow.id,
+						url: [[@{/system/getPhoto}]]+"?id="+selectRow.studentId,
 						success: function(data){
-							var i = [[@{/upload/imgs/}]];
+							var i = [[@{/upload/}]];
 							var imgUrl = data.imgurl;
 							var img = i + imgUrl;
 							//设置值
@@ -322,6 +327,7 @@
 							$("#edit_mark").textbox('setValue', selectRow.mark);
 							$("#edit_teacherId").textbox('setValue', selectRow.teacherId);
 							$("#edit_teacherName").textbox('setValue', selectRow.teacherName);
+							$("#edit_photo").filebox('setValue', "");
 
 							var div = document.createElement("div"),
 							img1 = document.createElement("img");
@@ -332,20 +338,6 @@
 							$("#imgd").append(div);
 						}
 					});
-
-					//设置值
-					// $("#edit_studentId").textbox('setValue', selectRow.studentId);
-					// $("#edit_username").textbox('setValue', selectRow.username);
-					// $("#edit_bindPhone").textbox('setValue', selectRow.bindPhone);
-					// $("#edit_pay").textbox('setValue', selectRow.pay);
-					// $("#edit_payDate").textbox('setValue', selectRow.payDate);
-					// $("#edit_fromSrc").textbox('setValue', selectRow.fromSrc);
-					// $("#edit_name").textbox('setValue', selectRow.name);
-					// $("#edit_payPhone").textbox('setValue', selectRow.payPhone);
-					// $("#edit_address").textbox('setValue', selectRow.address);
-					// $("#edit_mark").textbox('setValue', selectRow.mark);
-					// $("#edit_teacherId").textbox('setValue', selectRow.teacherId);
-					// $("#edit_teacherName").textbox('setValue', selectRow.teacherName);
 				}
 			});
 
@@ -359,10 +351,14 @@
 
 		/*图片预览*/
 		var filechange=function(event){
+			console.log(event)
 			$("#imgDiv div").remove();
 			var inp = event.path[0];
 			var files = event.target.files;
 			$.each(files,function(key,value){
+				console.log(files)
+				console.log(key)
+				console.log(value)
 				//每次都只会遍历一个图片数据
 				var div = document.createElement("div"),
 				img = document.createElement("img");
@@ -382,7 +378,6 @@
 
 		var filechange1=function(event){
 			$("#imgd div").remove();
-
 			var inp = event.path[0];
 			var files = event.target.files;
 			$.each(files,function(key,value){
@@ -399,10 +394,38 @@
 					div.appendChild(img);
 					$("#imgd").append(div);
 				};
-				console.log(img)
 				fr.readAsDataURL(value);
 			})
 		};
+
+		$(function () {
+			//添加对话框，上传控件初始化
+			$('#add_photo').filebox({
+				buttonText: '选择文件',  //按钮文本
+				buttonAlign: 'right',   //按钮对齐
+				accept: "image/jpeg,image/jpg,image/png", //指定文件类型
+				onChange: function (event) {
+					console.log(event)
+				}
+			});
+		});
+
+		$(function () {
+			//添加对话框，上传控件初始化
+			$('#edit_photo').filebox({
+				buttonText: '选择文件',  //按钮文本
+				buttonAlign: 'right',   //按钮对齐
+				accept: "image/jpeg,image/jpg,image/png", //指定文件类型
+				onChange: function (event) {
+					console.log(event)
+					$("#imgd div").remove();
+					if (event == "") {
+						$('#edit_photo').filebox({required:true, missingMessage:'请填上传信息截图'});
+					}
+				}
+			});
+		});
+
 
 		/*]]>*/
 	</script>
@@ -504,7 +527,7 @@
 			</tr>
 			<tr>
 				<td>信息截图:</td>
-				<td><input id="add_photo" onchange="filechange(event)" type="file" name="file" multiple></td>
+				<td><input id="add_photo" class="easyui-filebox" style="width: 200px; height: 30px;" data-options="required:true, missingMessage:'请填上传信息截图'" name="file"></td>
 			</tr>
 			<tr>
 				<td colspan="2"><div id="imgDiv"></div></td>
@@ -569,8 +592,10 @@
 			</tr>
 			<tr>
 				<td>信息截图:</td>
-				<td><input id="edit_photo" style="width: 200px; height: 30px;" class="easyui-textbox" onchange="filechange1(event)" type="file" name="photo" multiple data-options="required:true, missingMessage:'请上传信息截图'"></td>
-				<td><div id="imgd"></div></td>
+				<td><input id="edit_photo" class="easyui-filebox" style="width: 200px; height: 30px;" name="file"></td>
+			</tr>
+			<tr>
+				<td colspan="2"><div id="imgd"></div></td>
 			</tr>
 		</table>
 	</form>

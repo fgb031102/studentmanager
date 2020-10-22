@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "preread.uploadPath",
+      "type": "java.lang.String",
+      "description": "Description for preread.uploadPath."
+  }
+] }
